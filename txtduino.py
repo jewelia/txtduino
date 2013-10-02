@@ -1,4 +1,5 @@
 import settings
+import sys
 
 from BreakfastSerial import Led, Arduino, Button
 from twilio import TwilioRestException
@@ -17,8 +18,10 @@ def down_press():
   global msg_sent
   print "button down"
 
-  led.on()
   if not msg_sent:
+
+      # Turn on the LED to indicate we are sending the txt message!
+      led.on()
       try:
           client = TwilioRestClient(settings.twilio_account_sid,
                                 settings.twilio_auth_token)
@@ -26,9 +29,13 @@ def down_press():
               body="Hello from Julia's rad Arduino!",
               to=settings.your_phone_number,
               from_=settings.your_twilio_number)
-      except TwilioRestException as e:
-          print e
 
+      except TwilioRestException as e:
+          print "Ruh-roh got an error: %s" % e
+          led.off()
+          sys.exit(0)
+
+      print "Attempting to send message, status is: %s" % message.status
       msg_sent = True
       led.off()
 
